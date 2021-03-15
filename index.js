@@ -3,19 +3,21 @@ require('colors');
 const { getDate, getMonth, getYear, getMinutes, getHours, getSeconds, formatDistance} = require('date-fns');
 const ws = new WebSocket('wss://stream.binance.com/ws', {port: 9443});
 
+const coins = ['btc','usdt'];
+
 ws.on('open', function open() {
   ws.send(JSON.stringify({
     "method": "SUBSCRIBE",
     "params":
     [
-    "btcusdt@aggTrade",
+    `${coins[0]}${coins[1]}@aggTrade`,
     ],
     "id": 1
     }));
 });
 
 let min, max, oldPrice, price;
-let minDate, maxDate;
+let minDate, maxDate, startTime = new Date();
 let isFirstLoad = true;
 
 function getFormatedTime(date){
@@ -33,12 +35,13 @@ function getTimeSince(date){
     const time = formatDistance(date, new Date(), {includeSeconds: true, addSuffix: true});
     return time.charAt(0).toUpperCase() + time.slice(1);
 }
+
 ws.on('message', function incoming(data) {
     
  const { p } = JSON.parse(data)
 
  if(p !== undefined){
-    price = Number(p).toFixed(2);
+    price = Number(p) > 9 ? Number(p).toFixed(2) : Number(p);
  
     if(isFirstLoad) {
         min = max = oldPrice = price;
@@ -61,7 +64,7 @@ ws.on('message', function incoming(data) {
     const isFloating = (price > min && price < max);
     
     console.clear()
-    console.log(`[!] STATUS:`.cyan + ` ${isFloating ? 'Floating'.yellow : (isLowestPrice ? 'LOWEST'.red : 'HIGHEST'.green) }`);
+    console.log(`[${coins[0].toUpperCase()}/${coins[1].toUpperCase()}]`.red + `[!] STATUS:`.cyan + ` ${isFloating ? 'Floating'.yellow : (isLowestPrice ? 'LOWEST'.red : 'HIGHEST'.green) }`);
 
     const maxData = `MAX....: ${max}`.bgBrightGreen.black + ` @ ${getFormatedTime(maxDate)}`.gray;
     const priceData = `PRICE..: ${price}`[priceColor].black + ` @ ${getFormatedTime(new Date())}`.gray;
@@ -71,7 +74,8 @@ ws.on('message', function incoming(data) {
     console.log(minData)
     console.log(`HIGHEST.: ${getTimeSince(maxDate)}`.brightYellow);
     console.log(`LOWEST..: ${getTimeSince(minDate)}`.brightYellow);
-   
+    console.log(`SESSION STARTED: ${getFormatedTime(startTime)}`);
+    console.log(`COMPUTING SINCE: ${getTimeSince(startTime)}`);
     oldPrice = price;
  }
 });
