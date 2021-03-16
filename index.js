@@ -1,5 +1,7 @@
 const WebSocket = require('ws');
 require('colors');
+const logUpdate = require('log-update');
+var center = require('center-align');
 const { getDate, getMonth, getYear, getMinutes, getHours, getSeconds, formatDistance} = require('date-fns');
 const ws = new WebSocket('wss://stream.binance.com/ws', {port: 9443});
 
@@ -14,6 +16,7 @@ ws.on('open', function open() {
     ],
     "id": 1
     }));
+    console.clear();
 });
 
 let min, max, oldPrice, price;
@@ -58,24 +61,31 @@ ws.on('message', function incoming(data) {
         max = price;
         maxDate = new Date();
     }
-   
+
     const priceColor = (oldPrice === price ? 'bgYellow' : (oldPrice > price ? 'bgRed' : 'bgGreen'));
     const isLowestPrice = (min === price);
     const isFloating = (price > min && price < max);
     
-    console.clear()
-    console.log(`[${coins[0].toUpperCase()}/${coins[1].toUpperCase()}]`.red + `[!] STATUS:`.cyan + ` ${isFloating ? 'Floating'.yellow : (isLowestPrice ? 'LOWEST'.red : 'HIGHEST'.green) }`);
-
     const maxData = `MAX....: ${max}`.bgBrightGreen.black + ` @ ${getFormatedTime(maxDate)}`.gray;
     const priceData = `PRICE..: ${price}`[priceColor].black + ` @ ${getFormatedTime(new Date())}`.gray;
     const minData = `MIN....: ${min}`.bgBrightRed.black + ` @ ${getFormatedTime(minDate)}`.gray;
-    console.log(maxData)
-    console.log(priceData)
-    console.log(minData)
-    console.log(`HIGHEST.: ${getTimeSince(maxDate)}`.brightYellow);
-    console.log(`LOWEST..: ${getTimeSince(minDate)}`.brightYellow);
-    console.log(`SESSION STARTED: ${getFormatedTime(startTime)}`);
-    console.log(`COMPUTING SINCE: ${getTimeSince(startTime)}`);
+    
+    const highest = `HIGHEST.: ${getTimeSince(maxDate)}`.brightYellow;
+    const lowest = `LOWEST..: ${getTimeSince(minDate)}`.brightYellow;
+    const sessionStartedAt = `SESSION STARTED: ${getFormatedTime(startTime)}`.brightGreen;
+    const sessionTime = `COMPUTING SINCE: ${getTimeSince(startTime)}`.brightGreen;
+    const header = center(`[${coins[0].toUpperCase()}/${coins[1].toUpperCase()}]`,41).red;
+    const status = `[!] STATUS:`.cyan + ` ${isFloating ? 'Floating'.yellow : (isLowestPrice ? 'LOWEST'.red : 'HIGHEST'.green) }`;
+logUpdate(`${header}
+${status}
+${maxData}
+${priceData}
+${minData}
+${highest}
+${lowest}
+${sessionStartedAt}
+${sessionTime}
+`);
     oldPrice = price;
  }
 });

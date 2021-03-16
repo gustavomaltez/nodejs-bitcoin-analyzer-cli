@@ -4,8 +4,10 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "center-align": "^1.0.1",
     "colors": "^1.4.0",
     "date-fns": "^2.19.0",
+    "log-update": "^4.0.0",
     "ws": "^7.4.4"
   },
   "scripts": {
