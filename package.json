@@ -11,9 +11,11 @@
     "ws": "^7.4.4"
   },
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build:win": "pkg index.js --targets=node14-win-x64 -o=coinview.exe"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "pkg": "^4.4.9"
   }
 }
