@@ -4,8 +4,9 @@ const logUpdate = require('log-update');
 var center = require('center-align');
 const { getDate, getMonth, getYear, getMinutes, getHours, getSeconds, formatDistance} = require('date-fns');
 const ws = new WebSocket('wss://stream.binance.com/ws', {port: 9443});
+const coinsOptions = require('./coinview.json');
 
-const coins = ['btc','usdt'];
+const coins = [coinsOptions.from,coinsOptions.to];
 
 ws.on('open', function open() {
   ws.send(JSON.stringify({
@@ -38,12 +39,20 @@ function getTimeSince(date){
     const time = formatDistance(date, new Date(), {includeSeconds: true, addSuffix: true});
     return time.charAt(0).toUpperCase() + time.slice(1);
 }
-
+let times = 0;
 ws.on('message', function incoming(data) {
+    const { p, result } = JSON.parse(data)
     
- const { p } = JSON.parse(data)
+    if(data.includes(`"result":null`)){
+        times++;
+        console.log(`[${coins[0].toUpperCase()}/${coins[1].toUpperCase()}] is invalid! Edit your coinview.json!`)
+    }else if( times >= 1){
+        times = 0;
+        console.clear();
+    }
 
  if(p !== undefined){
+    
     price = Number(p) > 9 ? Number(p).toFixed(2) : Number(p);
  
     if(isFirstLoad) {
